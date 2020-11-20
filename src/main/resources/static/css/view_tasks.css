@@ -1,0 +1,17 @@
+.task-cell {
+    width: 1.5em;
+    border: 1px solid lightgray
+}
+
+.task-cell:hover {
+    cursor: pointer;
+    background-color: grey;
+}
+
+.basic-cell-on {
+    background-color: green;
+}
+
+.basic-cell-off {
+    background-color: white;
+}
