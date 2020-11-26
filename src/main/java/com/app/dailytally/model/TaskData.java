@@ -1,45 +1,48 @@
 package com.app.dailytally.model;
 
+import java.util.Date;
+
 // import java.io.Serializable;
 
-public class TaskResponse {
+public class TaskData {
     public String name;
     public String type;
     public String id;
+    public int[][] dates;
 
-    public int data[];
-    public long ldata[];
-    public double fdata[];
+    public int[][] data;
+    public long[][] ldata;
+    public double[][] fdata;
 
-    public TaskResponse(String name, String type, String id, int[] data) {
+    public TaskData(String name, String type, String id, int[][] data) {
         this.name = name;
         this.type = type;
         this.id = id;
         this.data = data;
     }
 
-    public TaskResponse(String name, String type, String id, double[] data) {
+    public TaskData(String name, String type, String id, double[][] data) {
         this.name = name;
         this.type = type;
         this.id = id;
         this.fdata = data;
     }
 
-    public TaskResponse(String name, String type, String id, long[] ldata) {
+    public TaskData(String name, String type, String id, long[][] ldata) {
         this.name = name;
         this.type = type;
         this.id = id;
         this.ldata = ldata;
     }
 
-    public TaskResponse(String name, String type, String id) {
+    public TaskData(String name, String type, String id) {
         this.name = name;
         this.type = type;
         this.id = id;
     }
-    
-    public String getName() {
-        return name;
-    }
 
+    public TaskData(String type, String id) {
+        this.type = type;
+        this.id = id;
+    }
 }

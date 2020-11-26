@@ -7,9 +7,9 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import org.springframework.stereotype.Component;
 
-import com.app.dailytally.model.tasks.BasicTask;
+import com.app.dailytally.model.tasks.AmountTask;
 
 @Repository
-public interface BasicTaskRepository extends MongoRepository<BasicTask, String> {
-    public List<BasicTask> findByName(String name);
+public interface AmountTaskRepository extends MongoRepository<AmountTask, String> {
+    public List<AmountTask> findByName(String name);
 }

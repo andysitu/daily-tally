@@ -1,126 +1,5 @@
 'use strict';
 
-class DateMenu extends React.Component {
-  render() {
-    return (
-      <div>
-        <button onClick={this.props.prevMonth} className="btn btn-outline-dark">{"<"}</button>
-        <span> Year {this.props.year} Month {this.props.month+1} </span>
-        <button onClick={this.props.nextMonth} className="btn btn-outline-dark">{">"}</button>
-      </div>
-    );
-  }
-}
-
-class TaskMenu extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      menu_type: "create",
-      task_name: "",
-      task_id: "",
-    }
-  }
-
-  // Will be called outside this class/function
-  switchType = (type) =>  {
-    if (type == "create" || type ==  "edit") {
-      this.setState({menu_type: type});
-    }
-  }
-
-  // Will be called outside this class/function
-  showEditMenu(taskid, taskName) {
-    this.state.task_name = taskName;
-    this.state.task_id = taskid;
-    this.switchType("edit");
-
-    // Manually set it since warnings popped up
-    document.getElementById("taskNameInput").value = taskName;
-  }
-
-  saveTask = (event) => {
-    event.preventDefault();
-    this.props.createTask();
-  }
-
-  editTask = (event) => {
-    event.preventDefault();
-    this.props.editTask(
-        this.state.task_id, document.getElementById("taskNameInput").value);
-  }
-
-  createMenuBody() {
-    if (this.state.menu_type == "create")
-        return this.createTaskMenu();
-    else if (this.state.menu_type == "edit")
-        return this.editTaskMenu();
-  }
-
-  editTaskMenu() {
-    return (
-      <div>
-      <div className="modal-body">
-        <form id="taskForm" onSubmit={this.editTask}>
-          <div className="form-group">
-            <label htmlFor="taskNameInput">Task Name</label>
-            <input type="text" className="form-control" name="task_name" id="taskNameInput"></input>
-          </div>
-        </form>
-      </div>
-      <div className="modal-footer">
-        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" onClick={this.editTask} className="btn btn-primary">Save</button>
-      </div>
-      </div>
-    );
-  }
-
-  createTaskMenu() {
-    return (
-      <div>
-      <div className="modal-body">
-        <form id="taskForm" onSubmit={this.saveTask}>
-          <div className="form-group">
-            <label htmlFor="taskNameInput">Task Name</label>
-            <input type="text" className="form-control" name="task_name" id="taskNameInput"></input>
-          </div>
-          <div className="form-group">
-            <label htmlFor="taskTypeSelect">Task Type</label>
-            <select className="form-control" name="task_type" id="taskTypeSelect">
-              <option value="basic">Basic</option>
-            </select>
-          </div>
-        </form>
-      </div>
-      <div className="modal-footer">
-        <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" onClick={this.saveTask} className="btn btn-primary">Save</button>
-      </div>
-      </div>
-    );
-  }
-
-  render() {
-    return (
-      <div className="modal" tabIndex="-1" role="dialog" id="taskModal">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Title</h5>
-              <button type="button" className="close" data-dismiss="modal" arial-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            
-            { this.createMenuBody() }
-          </div>
-        </div>
-      </div>
-    )
-  }
-}
-
 class CreateTaskButton extends React.Component {
   showModal = ()=> {
     this.props.showCreateTaskMenu();
@@ -131,6 +10,98 @@ class CreateTaskButton extends React.Component {
         Create Task
       </button>
     );
+  }
+}
+
+class Number_Input extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      value: this.props.value,
+      // disabled: false,
+    };
+    this.timer = null;
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(prevState.value != this.state.value) {
+      // taskrow, taskid, index, new_value 
+      this.checkInputTime(Object.assign({}, prevProps, {value: this.state.value}));
+    }
+  }
+
+  enable = (data) => {
+    // this.setState({disabled: false});
+  }
+
+  checkInputTime = (dataObj) => {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      this.setState({disabled: true});
+      this.props.interact_cell(dataObj, this.enable);
+    }, 1000);
+  }
+
+  onChange = (e) => {
+    this.setState({
+      value: e.target.value,
+    });
+  }
+
+  clickHandler(e) {
+    e.target.select();
+  }
+
+  render() {
+    return (
+      <input 
+        className="form-control count-inputs"
+        // disabled={this.state.disabled}
+        type="number"
+        taskid={this.props.taskid}
+        taskrow={this.props.taskrow}
+        day={this.props.index + 1} 
+        key={this.props.taskid+"-"+this.props.index} 
+        onChange={this.onChange}
+        onClick={this.clickHandler}
+        value={this.state.value}
+      ></input>);
+  }
+}
+
+class TimeCell extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hours: Math.floor(this.props.data/60),
+      minutes: this.props.data % 60,
+    }
+  }
+
+  clickHandler = () => {
+    if (this.props.interact_cell) {
+      this.props.interact_cell({
+        hours: this.state.hours,
+        minutes: this.state.minutes,
+        taskrow: this.props.taskrow,
+        taskid: this.props.taskid,
+        index: this.props.index,
+      });
+    } else {
+      return;
+    }
+  }
+
+  render() {
+    var hours = Math.floor(this.props.data/60),
+        minutes = this.props.data % 60;
+
+    return (<td className="task-cell"
+      onClick={this.clickHandler}
+    >
+      <div className="time-minute-cell">h: {hours}</div>
+      <div className="time-hour-cell">m: {minutes}</div>
+    </td>);
   }
 }
 
@@ -149,6 +120,75 @@ class TaskRow extends React.Component {
     this.props.show_edit_menu(event.target.getAttribute("taskid"));
   }
 
+  click_cell = (e) => {
+    this.props.interact_cell({
+      taskrow: e.target.getAttribute("taskrow"),
+      taskid: e.target.getAttribute("taskid"),
+      index: parseInt(e.target.getAttribute("day"))-1,
+    });
+  }
+
+  createCell = (task) => {
+    var count = 0;
+    if (task.type == "basic") {
+      return task.data.map((data, index) => {
+        var classname;
+        if (data == 1) {
+          classname = "task-cell basic-cell-on";
+          count++;
+        } else {
+          classname = "task-cell basic-cell-off";
+        }
+        return (<td 
+            className={classname} 
+            taskid={task.id} 
+            taskrow={this.props.taskrow} 
+            day={index+1} 
+            key={task.id+"-"+index} 
+            onClick={this.click_cell}></td>);
+        }).concat(
+          [<td 
+            className="task-cell-total" 
+            key={"final-"+this.props.task.id}>{count}</td>]);
+    } else if (task.type == "amount" || task.type == "countint") {
+      var formatter = new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 2,
+      });
+      var task_data = (task.type == "amount") ? task.fdata : task.ldata;
+      return task_data.map((data, index) => {
+        count += data;
+        return (<td
+            className="task-cell"
+            key={task.id+"-td-"+index}
+            >
+              <Number_Input
+                taskid={task.id}
+                taskrow={this.props.taskrow}
+                index={index}
+                interact_cell={this.props.interact_cell}
+                value={data}></Number_Input></td>);
+        }).concat(
+          [<td className="task-cell-total" 
+          key={"final-"+task.id}>{formatter.format(count).replace(/\D00(?=\D*$)/, '')}</td>]);
+    } else if (task.type == "time") {
+      return task.ldata.map((data, index) => {
+        count += data;
+        return <TimeCell 
+          data={data} key={task.id+"-"+index}
+          taskid={task.id}
+          taskrow={this.props.taskrow}
+          index={index}
+          interact_cell={this.props.interact_cell}
+        ></TimeCell>
+      }).concat(
+        [<TimeCell
+          data={count}
+          key={"final-"+task.id}
+        ></TimeCell>]
+      );
+    }
+  }
+
   render () {
     return (
       <tr >
@@ -159,6 +199,7 @@ class TaskRow extends React.Component {
                 {this.props.task.name}
             </button>
             <div className="dropdown-menu">
+              <a className="dropdown-item">Type: {this.props.task.type}</a>
               <a className="dropdown-item" 
                   href={"./tasks/delete/" + this.props.task.id}
                   taskid={this.props.task.id}
@@ -173,26 +214,10 @@ class TaskRow extends React.Component {
             </div>
           </div>
         </td>
-        {this.props.task.data.map((data, index) => {
-          if (this.props.task.type == "basic") {
-            if (data == 1)
-              return <td 
-                  className="task-cell basic-cell-on" 
-                  taskid={this.props.task.id} 
-                  taskrow={this.props.taskrow} 
-                  day={index+1} 
-                  key={this.props.task.id+"-"+index} 
-                  onClick={this.props.click_cell}></td>
-            else
-              return <td className="task-cell basic-cell-off" 
-                  taskid={this.props.task.id} 
-                  taskrow={this.props.taskrow} 
-                  day={index+1} 
-                  key={this.props.task.id+"-"+index} 
-                  onClick={this.props.click_cell}></td>
-          }
-          
-        })}
+        
+        {
+          this.createCell(this.props.task)
+        }
       </tr>
     );
   }
@@ -232,7 +257,8 @@ class TaskTable extends React.Component {
     this.getTasks(); 
   }
 
-  editTask = (taskid, taskname) => {
+  // Called from Edit Modal Menu
+  editTask = (taskid, new_taskname) => {
     const xhr = new XMLHttpRequest();
     const that = this;
     xhr.addEventListener('load', function(e){
@@ -240,7 +266,7 @@ class TaskTable extends React.Component {
 
       for(var i=0;i<that.state.tasks.length;i++) {
         if (that.state.tasks[i].id == taskid) {
-          that.state.tasks[i].name = taskname;
+          that.state.tasks[i].name = new_taskname;
           break;
         }
       }
@@ -248,10 +274,13 @@ class TaskTable extends React.Component {
       $("#taskModal").modal('hide');
     });
 
+    const t = this.getTaskObj(taskid);
+
     xhr.open('PATCH', '/tasks/' + taskid);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify({
-      name: taskname,
+      type: t.type,
+      name: new_taskname,
       taskid: taskid,
     }));
   }
@@ -262,6 +291,18 @@ class TaskTable extends React.Component {
       const xhr = new XMLHttpRequest();
       xhr.addEventListener('load', function(e){
         var tasks = JSON.parse(this.responseText);
+        // sort by name for now
+        tasks.sort((a, b) => {
+          var aname = a.name.toLowerCase(),
+              bname = b.name.toLowerCase();
+          if (aname < bname) {
+            return -1;
+          } else if (aname > bname) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
         console.log(tasks);
         that.setState({
           tasks: tasks
@@ -280,17 +321,22 @@ class TaskTable extends React.Component {
           that.state.tasks[taskrow].name + "?");
     if (!response)
       return;
+    
     const xhr = new XMLHttpRequest();
-      xhr.addEventListener('load', function(e){
-        that.state.tasks.splice(taskrow, 1);
-        that.setState({
-          tasks: that.state.tasks,
-        })
-      });
+    xhr.addEventListener('load', function(e){
+      that.state.tasks.splice(taskrow, 1);
+      that.setState({
+        tasks: that.state.tasks,
+      })
+    });
 
-      xhr.open('GET', `/tasks/delete/${taskid}`);
-      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-      xhr.send();
+    var deleleted_task = that.state.tasks[taskrow];
+    xhr.open('DELETE', `/tasks/delete/${taskid}`);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify({
+      taskid: taskid,
+      type: deleleted_task.type,
+    }));
   }
 
   createTask = () => {
@@ -319,52 +365,121 @@ class TaskTable extends React.Component {
     }));
   }
 
-  click_cell= (e, ...t) => {
-    const task = this.state.tasks[e.target.getAttribute("taskrow")];
-    const type = task.type,
-          day = e.target.getAttribute("day"),
-          taskid = e.target.getAttribute("taskid"),
-          taskrow = e.target.getAttribute("taskrow");
+  interact_cell = (dataObj, doneHandler) => {
+    const taskrow = dataObj.taskrow;
 
-    if (type == "basic") {
-      var sendData = {
-        monthIndex: day-1,
-        taskId: taskid,
-        taskType: type,
-        month: this.state.month,
-        year: this.state.year,
-      }
-      
-    }
+    const task = this.state.tasks[taskrow],
+          type = task.type;
+
     const xhr = new XMLHttpRequest();
     const that = this;
-    xhr.addEventListener('load', function(e){
-      const data = JSON.parse(this.responseText);
-      // Edit manually and then save to setstate - there maybe a better option
-      that.state.tasks[taskrow] = data;
 
-      that.setState({tasks: that.state.tasks});
-    });
+    var sendData = {
+      monthIndex: dataObj.index,
+      taskId: dataObj.taskid,
+      type: task.type,
+      month: this.state.month,
+      year: this.state.year,
+    }
+
+    if (type == "basic") {
+      xhr.addEventListener('load', function(e){
+        const data = JSON.parse(this.responseText);
+        // Edit manually and then save to setstate - there maybe a better option
+  
+        that.setState(prevState => {
+          var tasks = prevState.tasks.slice();
+          tasks[taskrow] = data;
+
+          return {tasks};
+        });
+      });
+    } else if (type == "amount" || type == "countint") {
+      if (type == "amount")
+        sendData.fvalue = dataObj.value;
+      else
+        sendData.lvalue = parseInt(dataObj.value);
+
+      xhr.addEventListener('load', function(e){
+        const data = JSON.parse(this.responseText);
+        console.log(data);
+
+        that.setState(prevState => {
+          var tasks = prevState.tasks.slice();
+          tasks[taskrow] = data;
+
+          return {tasks};
+        });
+        if (doneHandler) {
+          doneHandler(data);
+        }
+      });
+    } else if (type == "time") {
+      this.showTimeMenu(dataObj);
+      return;
+    }
 
     xhr.open('PATCH', '/tasks/month');
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(sendData));
   }
 
-  showEditTaskMenu = (taskid) => {
-    var t = "unknown";
+  updateData =(in_data) => {
+    var taskObj = this.getTaskObj(in_data.taskid);
+
+    var sendData = JSON.stringify({
+      monthIndex: in_data.index,
+      taskId: in_data.taskid,
+      type: taskObj.type,
+      month: this.state.month,
+      year: this.state.year,
+      lvalue: parseInt(in_data.hours) * 60 + parseInt(in_data.minutes),
+    });
+    
+    const xhr = new XMLHttpRequest();
+    const that = this;
+    xhr.addEventListener('load', function(e){
+      const data = JSON.parse(this.responseText);
+
+      that.setState(prevState => {
+        var tasks = prevState.tasks.slice();
+        tasks[in_data.taskrow] = data;
+
+        return {tasks};
+      });
+      
+      $("#taskModal").modal('hide');
+    });
+
+    xhr.open('PATCH', '/tasks/month')
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(sendData);
+  }
+
+  getTaskObj = (taskid) => {
     for(var i=0;i<this.state.tasks.length;i++) {
       if (this.state.tasks[i].id == taskid) {
-        t = this.state.tasks[i];
-        break;
+        return this.state.tasks[i];
       }
     }
+    return null;
+  }
+
+  showEditTaskMenu = (taskid) => {
+    var t = this.getTaskObj(taskid);
+
     this.taskmenu.current.showEditMenu(taskid, t.name);
     $("#taskModal").modal('show');
   }
 
   showCreateTaskMenu = () => {
     this.taskmenu.current.switchType("create");
+    $("#taskModal").modal('show');
+  }
+  showTimeMenu = (data) => {
+    var task = this.getTaskObj(data.taskid);
+    data.name = task.name;
+    this.taskmenu.current.showTimeMenu(data, this.updateData);
     $("#taskModal").modal('show');
   }
   
@@ -395,15 +510,16 @@ class TaskTable extends React.Component {
             <tr>
               <th>Name</th>
               {days}
+              <th>T</th>
             </tr>
           </thead>
           <tbody>
-            {tasks.map((task, index) => {
+            {this.state.tasks.map((task, index) => {
               return <TaskRow 
                   key={index} 
                   taskrow={index} 
-                  task={task} 
-                  click_cell={this.click_cell}
+                  task={task}
+                  interact_cell={this.interact_cell}
                   delete_task={this.deleteTask}
                   show_edit_menu={this.showEditTaskMenu}
               ></TaskRow>
@@ -416,6 +532,8 @@ class TaskTable extends React.Component {
 }
 
 function loadReact() {
+  taskcharts.load("taskChart");
+  ReactDOM.render(<ChartMenu />, document.getElementById("charts-menu-container"));    
   ReactDOM.render(<TaskTable />, document.getElementById("content-container"));    
 }
 

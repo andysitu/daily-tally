@@ -1,6 +1,17 @@
+.time-minute-cell,
+.time-hour-cell {
+    font-size: .80rem;
+}
+
 .task-cell {
-    width: 1.5em;
+    width: 2.5rem;
     border: 1px solid lightgray
+}
+
+td.task-cell-total {
+    width: 2.5rem;
+    border: 1px solid lightgray;
+    font-size: 0.5rem;
 }
 
 .task-cell:hover {
@@ -14,4 +25,17 @@
 
 .basic-cell-off {
     background-color: white;
+}
+
+input.count-inputs {
+    font-size: 0.5rem;
+    border: 0px 0px;
+    padding: 0px 0px;
+    text-align: center;
+}
+
+input.count-inputs::-webkit-outer-spin-button,
+input.count-inputs::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
