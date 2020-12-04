@@ -11,7 +11,28 @@ class DateMenu extends React.Component {
 }
 
 class TimeMenu extends React.Component {
-  submit = (event) => {
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: this.props.data,
+      hours: this.props.hours,
+      minutes: this.props.minutes,
+      submitHandler: this.props.submitHandler,
+    };
+  }
+  componentDidMount() {
+    $("#taskModal").modal('show');
+  }
+  setInputs = (data, submitHandler) => {
+    this.setState({
+      data: data,
+      hours: data.hours,
+      minutes: data.minutes,
+      submitHandler: submitHandler,
+    });
+    $("#taskModal").modal('show');
+  }
+  onSubmit = (event) => {
     event.preventDefault();
 
     var minutes = document.getElementById("minutes-input").value,
@@ -22,10 +43,16 @@ class TimeMenu extends React.Component {
       return;
     }
 
-    var data = this.props.data;
+    var data = this.state.data;
     data.minutes = minutes;
     data.hours = hours;
     this.props.submitHandler(data);
+  }
+  onChange_hours = (e) => {
+    this.setState({hours: e.target.value});
+  }
+  onChange_minutes = (e) => {
+    this.setState({minutes: e.target.value});
   }
 
   render() {
@@ -38,21 +65,22 @@ class TimeMenu extends React.Component {
             </div>
             <div className="form-group">
               <label>Hours</label>
-              <input className="form-control" type="number" required
-                defaultValue={this.props.hours} id="hours-input"></input>
+              <input className="form-control" type="number" required onChange={this.onChange_hours}
+                value={this.state.hours} id="hours-input"></input>
             </div>
             <div className="form-group">
               <label>Minutes</label>
-              <input className="form-control" type="number" required 
-                defaultValue={this.props.minutes} id="minutes-input"></input>
+              <input className="form-control" type="number" required onChange={this.onChange_minutes}
+                value={this.state.minutes} id="minutes-input"></input>
             </div>
           </form>
         </div>
         <div className="modal-footer">
           <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="submit" onClick={this.submit} className="btn btn-primary">Save</button>
+          <button type="submit" onClick={this.onSubmit} className="btn btn-primary">Save</button>
         </div>
-      </div>);
+      </div>
+    );
   }
 }
 
@@ -63,11 +91,17 @@ class TaskMenu extends React.Component {
       menu_type: "create",
       task_name: "",
       task_id: "",
+      timemenu: React.createRef(),
+      data: {},
+      submitHandler: null,
     }
   }
 
   // Will be called outside this class/function
   switchType = (type) =>  {
+    if (type != "time") {
+      this.state.timemenu = React.createRef();
+    }
     if (type == "create" || type ==  "edit" || type == "time") {
       this.setState({menu_type: type});
     }
@@ -78,16 +112,17 @@ class TaskMenu extends React.Component {
     this.state.task_name = taskName;
     this.state.task_id = taskid;
     this.switchType("edit");
-
-    // Manually set it since warnings popped up
-    document.getElementById("taskNameInput").value = taskName;
   }
 
   //data - taskid, hours, minutes
   showTimeMenu = (data, submitHandler) => {
-    this.data = data;
-    this.state.submitHandler = submitHandler;
-    this.switchType("time");
+    this.setState({data: data, submitHandler: submitHandler});
+    if (this.state.timemenu && this.state.timemenu.current) {
+      console.log(this.state.timemenu);
+      this.state.timemenu.current.setInputs(data, submitHandler);
+    } else {
+      this.switchType("time");
+    }
   }
 
   saveTask = (event) => {
@@ -108,12 +143,12 @@ class TaskMenu extends React.Component {
       return this.editTaskMenu();
     else if (this.state.menu_type == "time") {
       return (<
-        TimeMenu
-          hours={this.data.hours}
-          minutes={this.data.minutes}
-          data={this.data}
+        TimeMenu ref={this.state.timemenu}
+          hours={this.state.data.hours}
+          minutes={this.state.data.minutes}
+          data={this.state.data}
           submitHandler={this.state.submitHandler}
-      ></TimeMenu>)
+      ></TimeMenu>);
     }
   }
 
@@ -124,7 +159,8 @@ class TaskMenu extends React.Component {
           <form id="taskForm" onSubmit={this.editTask}>
             <div className="form-group">
               <label htmlFor="taskNameInput">Task Name</label>
-              <input type="text" className="form-control" name="task_name" id="taskNameInput"></input>
+              <input type="text" className="form-control" name="task_name" 
+                id="taskNameInput" defaultValue={this.state.task_name}></input>
             </div>
           </form>
         </div>
@@ -175,7 +211,6 @@ class TaskMenu extends React.Component {
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            
             { this.createMenuBody() }
           </div>
         </div>

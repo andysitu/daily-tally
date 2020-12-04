@@ -480,7 +480,6 @@ class TaskTable extends React.Component {
     var task = this.getTaskObj(data.taskid);
     data.name = task.name;
     this.taskmenu.current.showTimeMenu(data, this.updateData);
-    $("#taskModal").modal('show');
   }
   
   render() {
