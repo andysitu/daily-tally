@@ -6,7 +6,7 @@ An application to keep track of daily tasks and data. The 4 current types possib
 
 ## Basic Info
 
-Application using Java with Spring Boot and MongoDB for the backend and React for the frontend page generation given by Thymeleaf in the basic page template and static files to the browser. 
+Application using Java with Spring Boot and MongoDB for the backend and React for the frontend page generation given by served in a static file in Thymeleaf.
 
 Chart.js is use for the chart generation. Plain JS for the Ajax communications between the browser and server.
 
